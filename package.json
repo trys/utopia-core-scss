@@ -1,0 +1,16 @@
+{
+  "name": "utopia-core-scss",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "sass src/utopia.scss dist/utopia.css",
+    "dev": "sass --watch src/utopia.scss dist/utopia.css"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "sass": "^1.70.0"
+  }
+}

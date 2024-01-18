@@ -1,0 +1,149 @@
+@use "sass:math";
+
+@function calculateTypeSize($config, $viewport, $step) {
+  $scale: _range(map_get($config, 'minWidth'), map_get($config, 'maxWidth'), map_get($config, 'minTypeScale'), map_get($config, 'maxTypeScale'), $viewport);
+  $fontSize: _range(map_get($config, 'minWidth'), map_get($config, 'maxWidth'), map_get($config, 'minFontSize'), map_get($config, 'maxFontSize'), $viewport);
+  @return $fontSize * pow($scale, $step);
+}
+
+@function _round($number, $digits: 3) {
+  $n: 1;
+  // $number must be a number
+  @if type-of($number) != number {
+      @warn '#{ $number } is not a number.';
+      @return $number;
+  }
+  // $digits must be a unitless number
+  @if type-of($digits) != number {
+      @warn '#{ $digits } is not a number.';
+      @return $number;
+  } @else if not unitless($digits) {
+      @warn '#{ $digits } has a unit.';
+      @return $number;
+  }
+  @for $i from 1 through $digits {
+      $n: $n * 10;
+  }
+  @return math.div(round($number * $n), $n);
+}
+
+@function calculateClamp($params) {
+  $unit: 0.0625rem;
+  @if (map-get($params, "usePx")) {
+    $unit: 1px;
+  }
+
+  $relativeUnit: 1vi;
+  @if (map-get($params, "relativeTo") == "container") {
+    $relativeUnit: 1cqi;
+  }
+
+  $isNegative: map-get($params, "minSize") > map-get($params, "maxSize");
+  $min: map-get($params, "minSize");
+  $max: map-get($params, "maxSize");
+
+  @if ($isNegative) {
+    $min: map-get($params, "maxSize");
+    $max: map-get($params, "minSize")
+  }
+
+  $slope: (map-get($params, "maxSize") - map-get($params, "minSize")) / (map-get($params, "maxWidth") - map-get($params, "minWidth"));
+  $intersection: (-1 * map-get($params, "minWidth")) * $slope + map-get($params, "minSize");
+  @return clamp(_round($min * $unit), #{_round($intersection * $unit)} + #{_round($slope * 100) * $relativeUnit}, _round($max * $unit));
+}
+
+@function calculateTypeStep($config, $step) {
+  $minSize: calculateTypeSize($config, map_get($config, 'minWidth'), $step);
+  $maxSize: calculateTypeSize($config, map_get($config, 'maxWidth'), $step);
+
+  @return (
+    "step": $step,
+    "minSize": $minSize,
+    "maxSize": $maxSize,
+    "clamp": calculateClamp((
+      "minWidth": map-get($config, "minWidth"),
+      "maxWidth": map-get($config, "maxWidth"),
+      "minSize": $minSize,
+      "maxSize": $maxSize,
+    ))
+  );
+}
+
+@function prepend($list, $value) {
+  @return join(newList($value), $list);
+}
+
+@function remove-nth($list, $index) {
+  $result: null;
+
+  @if type-of($index) != number {
+    @warn "$index: #{quote($index)} is not a number for `remove-nth`.";
+  } @else if $index == 0 {
+    @warn "List index 0 must be a non-zero integer for `remove-nth`.";
+  } @else if abs($index) > length($list) {
+    @warn "List index is #{$index} but list is only #{length($list)} item long for `remove-nth`.";
+  } @else {
+    $result: ();
+    $index: if($index < 0, length($list) + $index + 1, $index);
+
+    @for $i from 1 through length($list) {
+      @if $i != $index {
+        $result: append($result, nth($list, $i));
+      }
+    }
+  }
+
+  @return $result;
+}
+
+@function newList($value) {
+  $list: $value, $value;
+  @return remove-nth($list, 1);
+}
+
+@mixin calculateTypeScale($config) {
+  $steps: newList(calculateTypeStep($config, 0));
+
+  @for $i from 1 through map-get($config, "positiveSteps") {
+    $steps: append($steps, calculateTypeStep($config, $i));
+  }
+
+  @for $i from 1 through map-get($config, "negativeSteps") {
+    $steps: prepend($steps, calculateTypeStep($config, -1 * $i));
+  }
+
+  @each $step in $steps {
+    --step-#{map-get($step, "step")}: #{map-get($step, "clamp")};
+  }
+}
+
+@function _lerp($x, $y, $a) {
+  @return $x * (1 - $a) + $y * $a;
+}
+
+@function _clamp($a, $min: 0, $max: 1) {
+  @return min($max, max($min, $a));
+}
+
+@function _invlerp($x, $y, $a) {
+  @return _clamp(($a - $x) / ($y - $x));
+}
+
+@function _range($x1, $y1, $x2, $y2, $a) {
+  @return _lerp($x2, $y2, _invlerp($x1, $y1, $a));
+}
+
+:root {
+  @include calculateTypeScale((
+    "minWidth": 320,
+    "maxWidth": 1240,
+    "minFontSize": 18,
+    "maxFontSize": 20,
+    "minTypeScale": 1.2,
+    "maxTypeScale": 1.25,
+    "positiveSteps": 5,
+    "negativeSteps": 2
+  ));
+}
+
+
