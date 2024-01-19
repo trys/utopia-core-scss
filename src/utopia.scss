@@ -233,17 +233,10 @@
         "maxWidth": map-get($config, "maxWidth"),
         "minSize": $min,
         "maxSize": $max,
+        "usePx": map-get($config, "usePx"),
         "relativeTo": map-get($config, "relativeTo")
-      )),
-      "clampPx": calculateClamp((
-        "minWidth": map-get($config, "minWidth"),
-        "maxWidth": map-get($config, "maxWidth"),
-        "minSize": $min,
-        "maxSize": $max,
-        "usePx": true,
-        "relativeTo": map-get($config, "relativeTo")
-      )
-    )));
+      ))
+    ));
   }
 
   @return $pairs;
@@ -285,8 +278,6 @@
   @include generateClamps((
     "minWidth": 320,
     "maxWidth": 1240,
-    "relativeTo": "viewport-width",
-    "usePx": true,
     "pairs": (
       (16, 48),
       (40, 18)
