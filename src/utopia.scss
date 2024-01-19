@@ -160,16 +160,22 @@
       @return $item;
     }
   }
+
+  @return false;
 }
 
 @function calculateCustomPairs($config, $sizes) {
   $pairs: ();
+  $customSizes: map-get($config, "customSizes");
+  @if (type-of($customSizes) != "list") {
+    @return $pairs;
+  }
 
-  @each $label in map-get($config, "customSizes") {
+  @each $label in $customSizes {
     $keys: string.split($label, '-', 1);
     $a: findByKey($sizes, "label", nth($keys, 1));
     $b: findByKey($sizes, "label", nth($keys, 2));
-    @if ($a && $b) {
+    @if (type-of($a) == "map" and type-of($b) == "map") {
       $pairs: append($pairs, (
         "label": "#{map-get($a, "label")}-#{map-get($b, "label")}",
         "minSize": map-get($a, "minSize"),
@@ -200,15 +206,19 @@
   $sizes: helpers.newList(calculateSpaceSize($config, 1, 0));
 
   $positiveSteps: map-get($config, "positiveSteps");
-  @each $step in $positiveSteps {
-    $i: index($positiveSteps, $step);
-    $sizes: append($sizes, calculateSpaceSize($config, $step, $i));
+  @if (type-of($positiveSteps) == "list") {
+    @each $step in $positiveSteps {
+      $i: index($positiveSteps, $step);
+      $sizes: append($sizes, calculateSpaceSize($config, $step, $i));
+    }
   }
 
   $negativeSteps: map-get($config, "negativeSteps");
-  @each $step in $negativeSteps {
-    $i: index($negativeSteps, $step);
-    $sizes: helpers.prepend($sizes, calculateSpaceSize($config, $step, -1 * $i));
+  @if (type-of($negativeSteps) == "list") {
+    @each $step in $negativeSteps {
+      $i: index($negativeSteps, $step);
+      $sizes: helpers.prepend($sizes, calculateSpaceSize($config, $step, -1 * $i));
+    }
   }
 
   @return (
