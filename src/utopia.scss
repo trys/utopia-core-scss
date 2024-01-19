@@ -79,26 +79,6 @@
   }
 }
 
-/*
-const calculateSpaceSize = (config: UtopiaSpaceConfig, multiplier: number, step: number): UtopiaSize => {
-
-  let label = 'S';
-  if (step === 1) {
-    label = 'M';
-  } else if (step === 2) {
-    label = 'L';
-  } else if (step === 3) {
-    label = 'XL';
-  } else if (step > 3) {
-    label = `${step - 2}XL`;
-  } else if (step === -1) {
-    label = 'XS';
-  } else if (step < 0) {
-    label = `${Math.abs(step)}XS`;
-  }
-}
-*/
-
 @function calculateSpaceSize($config, $multiplier, $step) {
   $minSize: math.round(map-get($config, "minSize") * $multiplier);
   $maxSize: math.round(map-get($config, "maxSize") * $multiplier);
@@ -137,10 +117,10 @@ const calculateSpaceSize = (config: UtopiaSpaceConfig, multiplier: number, step:
       "usePx": true,
       "relativeTo": map-get($config, "relativeTo")
     ))
-  )
+  );
 }
 
-@mixin generateSpaceScale($config) {
+@function calculateSpaceScale($config) {
   $sizes: helpers.newList(calculateSpaceSize($config, 1, 0));
 
   $positiveSteps: map-get($config, "positiveSteps");
@@ -155,7 +135,14 @@ const calculateSpaceSize = (config: UtopiaSpaceConfig, multiplier: number, step:
     $sizes: helpers.prepend($sizes, calculateSpaceSize($config, $step, -1 * $i));
   }
 
-  @each $size in $sizes {
+  @return (
+    "sizes": $sizes,
+  );
+}
+
+@mixin generateSpaceScale($config) {
+  $scale: calculateSpaceScale($config);
+  @each $size in map-get($scale, "sizes") {
     --space-#{map-get($size, "label")}: #{map-get($size, "clamp")};
   }
 }
