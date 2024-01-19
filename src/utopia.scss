@@ -2,6 +2,8 @@
 @use "sass:string";
 @use './helpers.scss';
 
+// Singular clamp
+
 @function calculateClamp($params) {
   $unit: 0.0625rem;
   @if (map-get($params, "usePx")) {
@@ -29,6 +31,8 @@
   $intersection: (-1 * map-get($params, "minWidth")) * $slope + map-get($params, "minSize");
   @return "clamp(#{helpers.roundValue($min * $unit)}, #{helpers.roundValue($intersection * $unit)} + #{helpers.roundValue($slope * 100) * $relativeUnit}, #{helpers.roundValue($max * $unit)})";
 }
+
+// Type
 
 @function calculateTypeSize($config, $viewport, $step) {
   $scale: helpers.range(map-get($config, 'minWidth'), map-get($config, 'maxWidth'), map-get($config, 'minTypeScale'), map-get($config, 'maxTypeScale'), $viewport);
@@ -74,11 +78,7 @@
   @return $steps;
 }
 
-@mixin generateTypeScale($config) {
-  @each $step in calculateTypeScale($config) {
-    --step-#{map-get($step, "step")}: #{map-get($step, "clamp")};
-  }
-}
+// Space
 
 @function calculateSpaceSize($config, $multiplier, $step) {
   $minSize: math.round(map-get($config, "minSize") * $multiplier);
@@ -154,16 +154,6 @@
   @return $pairs;
 }
 
-@function findByKey($list, $key, $value) {
-  @each $item in $list {
-    @if (map-get($item, $key) == $value) {
-      @return $item;
-    }
-  }
-
-  @return false;
-}
-
 @function calculateCustomPairs($config, $sizes) {
   $pairs: ();
   $customSizes: map-get($config, "customSizes");
@@ -173,8 +163,8 @@
 
   @each $label in $customSizes {
     $keys: string.split($label, '-', 1);
-    $a: findByKey($sizes, "label", nth($keys, 1));
-    $b: findByKey($sizes, "label", nth($keys, 2));
+    $a: helpers.findByKey($sizes, "label", nth($keys, 1));
+    $b: helpers.findByKey($sizes, "label", nth($keys, 2));
     @if (type-of($a) == "map" and type-of($b) == "map") {
       $pairs: append($pairs, (
         "label": "#{map-get($a, "label")}-#{map-get($b, "label")}",
@@ -228,22 +218,81 @@
   );
 }
 
+// Clamp
+
+@function calculateClamps($config) {
+  $pairs: ();
+
+  @each $item in map-get($config, "pairs") {
+    $min: nth($item, 1);
+    $max: nth($item, 2);
+    $pairs: append($pairs, (
+      "label": "#{$min}-#{$max}",
+      "clamp": calculateClamp((
+        "minWidth": map-get($config, "minWidth"),
+        "maxWidth": map-get($config, "maxWidth"),
+        "minSize": $min,
+        "maxSize": $max,
+        "relativeTo": map-get($config, "relativeTo")
+      )),
+      "clampPx": calculateClamp((
+        "minWidth": map-get($config, "minWidth"),
+        "maxWidth": map-get($config, "maxWidth"),
+        "minSize": $min,
+        "maxSize": $max,
+        "usePx": true,
+        "relativeTo": map-get($config, "relativeTo")
+      )
+    )));
+  }
+
+  @return $pairs;
+}
+
+// Mixins
+
+@mixin generateTypeScale($config) {
+  @each $step in calculateTypeScale($config) {
+    --step-#{map-get($step, "step")}: #{map-get($step, "clamp")};
+  }
+}
+
 @mixin generateSpaceScale($config) {
   $scale: calculateSpaceScale($config);
   @each $size in map-get($scale, "sizes") {
-    --space-#{map-get($size, "label")}: #{map-get($size, "clamp")};
+    --space-#{map-get($size, "label")}: #{map-get($size, "clampPx")};
   }
 
   @each $size in map-get($scale, "oneUpPairs") {
-    --space-#{map-get($size, "label")}: #{map-get($size, "clamp")};
+    --space-#{map-get($size, "label")}: #{map-get($size, "clampPx")};
   }
 
   @each $size in map-get($scale, "customPairs") {
+    --space-#{map-get($size, "label")}: #{map-get($size, "clampPx")};
+  }
+}
+
+@mixin generateClamps($config) {
+  $clamps: calculateClamps($config);
+  @each $size in $clamps {
     --space-#{map-get($size, "label")}: #{map-get($size, "clamp")};
   }
 }
 
+// Example - TOOD - remove
+
 :root {
+  @include generateClamps((
+    "minWidth": 320,
+    "maxWidth": 1240,
+    "relativeTo": "viewport-width",
+    "usePx": true,
+    "pairs": (
+      (16, 48),
+      (40, 18)
+    ),
+  ));
+
   @include generateSpaceScale((
     "minWidth": 320,
     "maxWidth": 1240,

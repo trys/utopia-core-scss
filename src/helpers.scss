@@ -78,3 +78,13 @@
 
   @return $result;
 }
+
+@function findByKey($list, $key, $value) {
+  @each $item in $list {
+    @if (map-get($item, $key) == $value) {
+      @return $item;
+    }
+  }
+
+  @return false;
+}
