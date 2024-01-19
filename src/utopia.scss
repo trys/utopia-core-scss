@@ -1,4 +1,5 @@
 @use "sass:math";
+@use "sass:string";
 @use './helpers.scss';
 
 @function calculateClamp($params) {
@@ -120,6 +121,81 @@
   );
 }
 
+@function calculateOneUpPairs($config, $sizes) {
+  $pairs: ();
+  @each $size in $sizes {
+    $i: index($sizes, $size);
+    @if ($i > 1) {
+      $prev: nth($sizes, $i - 1);
+
+      $pairs: append($pairs, (
+        "label": "#{map-get($prev, "label")}-#{map-get($size, "label")}",
+        "minSize": map-get($prev, "minSize"),
+        "maxSize": map-get($size, "maxSize"),
+        "clamp": calculateClamp((
+          "minWidth": map-get($config, "minWidth"),
+          "maxWidth": map-get($config, "maxWidth"),
+          "minSize": map-get($prev, "minSize"),
+          "maxSize": map-get($size, "maxSize"),
+          "relativeTo": map-get($config, "relativeTo")
+        )),
+        "clampPx": calculateClamp((
+          "minWidth": map-get($config, "minWidth"),
+          "maxWidth": map-get($config, "maxWidth"),
+          "minSize": map-get($prev, "minSize"),
+          "maxSize": map-get($size, "maxSize"),
+          "usePx": true,
+          "relativeTo": map-get($config, "relativeTo")
+        ))
+      ));
+    }
+  }
+
+  @return $pairs;
+}
+
+@function findByKey($list, $key, $value) {
+  @each $item in $list {
+    @if (map-get($item, $key) == $value) {
+      @return $item;
+    }
+  }
+}
+
+@function calculateCustomPairs($config, $sizes) {
+  $pairs: ();
+
+  @each $label in map-get($config, "customSizes") {
+    $keys: string.split($label, '-', 1);
+    $a: findByKey($sizes, "label", nth($keys, 1));
+    $b: findByKey($sizes, "label", nth($keys, 2));
+    @if ($a && $b) {
+      $pairs: append($pairs, (
+        "label": "#{map-get($a, "label")}-#{map-get($b, "label")}",
+        "minSize": map-get($a, "minSize"),
+        "maxSize": map-get($b, "maxSize"),
+        "clamp": calculateClamp((
+          "minWidth": map-get($config, "minWidth"),
+          "maxWidth": map-get($config, "maxWidth"),
+          "minSize": map-get($a, "minSize"),
+          "maxSize": map-get($b, "maxSize"),
+          "relativeTo": map-get($config, "relativeTo")
+        )),
+        "clampPx": calculateClamp((
+          "minWidth": map-get($config, "minWidth"),
+          "maxWidth": map-get($config, "maxWidth"),
+          "minSize": map-get($a, "minSize"),
+          "maxSize": map-get($b, "maxSize"),
+          "usePx": true,
+          "relativeTo": map-get($config, "relativeTo")
+        )),
+      ));
+    }
+  }
+  
+  @return $pairs;
+}
+
 @function calculateSpaceScale($config) {
   $sizes: helpers.newList(calculateSpaceSize($config, 1, 0));
 
@@ -137,12 +213,22 @@
 
   @return (
     "sizes": $sizes,
+    "oneUpPairs": calculateOneUpPairs($config, $sizes),
+    "customPairs": calculateCustomPairs($config, $sizes),
   );
 }
 
 @mixin generateSpaceScale($config) {
   $scale: calculateSpaceScale($config);
   @each $size in map-get($scale, "sizes") {
+    --space-#{map-get($size, "label")}: #{map-get($size, "clamp")};
+  }
+
+  @each $size in map-get($scale, "oneUpPairs") {
+    --space-#{map-get($size, "label")}: #{map-get($size, "clamp")};
+  }
+
+  @each $size in map-get($scale, "customPairs") {
     --space-#{map-get($size, "label")}: #{map-get($size, "clamp")};
   }
 }
