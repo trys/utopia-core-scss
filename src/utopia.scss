@@ -245,36 +245,61 @@
 // Mixins
 
 @mixin generateTypeScale($config) {
+  $prefix: helpers.getDefault($config, "prefix", "step-");
   @each $step in calculateTypeScale($config) {
-    --step-#{map-get($step, "step")}: #{map-get($step, "clamp")};
+    --#{$prefix}#{map-get($step, "step")}: #{map-get($step, "clamp")};
   }
 }
 
 @mixin generateSpaceScale($config) {
+  $prefix: helpers.getDefault($config, "prefix", "space-");
+  $format: "clamp";
+  @if (map-get($config, "usePx")) {
+    $format: "clampPx";
+  }
+
   $scale: calculateSpaceScale($config);
   @each $size in map-get($scale, "sizes") {
-    --space-#{map-get($size, "label")}: #{map-get($size, "clampPx")};
+    --#{$prefix}#{map-get($size, "label")}: #{map-get($size, $format)};
   }
 
   @each $size in map-get($scale, "oneUpPairs") {
-    --space-#{map-get($size, "label")}: #{map-get($size, "clampPx")};
+    --#{$prefix}#{map-get($size, "label")}: #{map-get($size, $format)};
   }
 
   @each $size in map-get($scale, "customPairs") {
-    --space-#{map-get($size, "label")}: #{map-get($size, "clampPx")};
+    --#{$prefix}#{map-get($size, "label")}: #{map-get($size, $format)};
   }
 }
 
+@mixin generateClamp($config) {
+  $prefix: helpers.getDefault($config, "prefix", "space-");
+  $min: map-get($config, "minSize");
+  $max: map-get($config, "maxSize");
+  --#{$prefix}#{$min}-#{$max}: #{calculateClamp($config)};
+}
+
 @mixin generateClamps($config) {
+  $prefix: helpers.getDefault($config, "prefix", "space-");
   $clamps: calculateClamps($config);
   @each $size in $clamps {
-    --space-#{map-get($size, "label")}: #{map-get($size, "clamp")};
+    --#{$prefix}#{map-get($size, "label")}: #{map-get($size, "clamp")};
   }
 }
 
 // Example - TOOD - remove
 
 :root {
+  @include generateClamp((
+    "minWidth": 320,
+    "maxWidth": 1240,
+    "minSize": 16,
+    "maxSize": 20,
+    "prefix": "space-",
+    "relativeTo": "viewport-width",
+    "usePx": true,
+  ));
+
   @include generateClamps((
     "minWidth": 320,
     "maxWidth": 1240,
@@ -282,6 +307,7 @@
       (16, 48),
       (40, 18)
     ),
+    "prefix": "space-",
   ));
 
   @include generateSpaceScale((
@@ -292,6 +318,7 @@
     "positiveSteps": (1.5, 2, 3, 4, 6),
     "negativeSteps": (0.75, 0.5, 0.25),
     "customSizes": ("s-l", "l-s"),
+    "prefix": "space-",
   ));
 
   @include generateTypeScale((
@@ -303,6 +330,7 @@
     "maxTypeScale": 1.25,
     "positiveSteps": 5,
     "negativeSteps": 2,
+    "prefix": "step-",
   ));
 }
 
