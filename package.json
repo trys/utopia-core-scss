@@ -1,16 +1,21 @@
 {
   "name": "utopia-core-scss",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Utopia.fyi fluid calculations in SCSS",
+  "main": "src/utopia.scss",
+  "style": "src/utopia.scss",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trys/utopia-core-scss.git"
+  },
   "scripts": {
     "build": "sass src/utopia.scss dist/utopia.css",
     "dev": "sass --watch src/utopia.scss dist/utopia.css"
   },
   "keywords": [],
-  "author": "",
+  "author": "Trys Mudford",
   "license": "ISC",
-  "dependencies": {
+  "devDependencies": {
     "sass": "^1.70.0"
   }
 }

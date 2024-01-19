@@ -1,6 +1,16 @@
 # Utopia Core SCSS
 
-The calculations behind [Utopia.fyi](https://utopia.fyi). Written in SCSS.
+The calculations behind [Utopia.fyi](https://utopia.fyi). Written in SCSS. Also available in [JS/TS here](https://github.com/trys/utopia-core).
+
+## Installation
+
+```bash
+npm install utopia-core-scss
+```
+
+```scss
+@use 'node_modules/utopia-core-scss/src/utopia' as utopia;
+```
 
 ## Documentation
 
@@ -19,7 +29,7 @@ Generate a fluid type scale between two widths, sizes and scales. Set the number
 ```scss
 :root {
   // Calling this:
-  generateTypeScale((
+  @include utopia.generateTypeScale((
     "minWidth": 320,
     "maxWidth": 1240,
     "minFontSize": 18,
@@ -51,7 +61,7 @@ Generate a set of fluid spaces from min/max width/base sizes, and a number of po
 ```scss
 :root {
   // Calling this:
-  generateSpaceScale((
+  @include utopia.generateSpaceScale((
     "minWidth": 320,
     "maxWidth": 1240,
     "minSize": 18,
@@ -88,7 +98,7 @@ Generate multiple clamps from a single set of min/max widths. Supply an array of
 ```scss
 :root {
   // Calling this:
-  calculateClamps((
+  @include utopia.generateClamps((
     "minWidth": 320,
     "maxWidth": 1240,
     "pairs": (
@@ -116,7 +126,7 @@ Generate a single clamp custom property from a min/max width & size. Default to 
 ```scss
 :root {
   // Calling this:
-  generateClamp((
+  @include utopia.generateClamp((
     "minWidth": 320,
     "maxWidth": 1240,
     "minSize": 16,
@@ -141,7 +151,7 @@ Calculate a fluid type scale between two widths, sizes and scales. Set the numbe
 #### Example
 
 ```scss
-$typeScale: generateTypeScale((
+$typeScale: utopia.generateTypeScale((
   "minWidth": 320,
   "maxWidth": 1240,
   "minFontSize": 18,
@@ -171,7 +181,7 @@ Calculate a set of fluid spaces from min/max width/base sizes, and a number of p
 #### Example
 
 ```scss
-$spaceScales: calculateSpaceScale((
+$spaceScales: utopia.calculateSpaceScale((
   "minWidth": 320,
   "maxWidth": 1240,
   "minSize": 18,
@@ -205,7 +215,7 @@ Calculate multiple clamps from a single set of min/max widths. Supply an array o
 #### Example
 
 ```scss
-$clamps: calculateClamps((
+$clamps: utopia.calculateClamps((
   "minWidth": 320,
   "maxWidth": 1240,
   "pairs": (
@@ -236,7 +246,7 @@ Calculate a single clamp calculation from a min/max width & size. Default to usi
 #### Example
 
 ```scss
-$clamp: calculateClamp({
+$clamp: utopia.calculateClamp({
   "minWidth": 320,
   "maxWidth": 1240,
   "minSize": 16,

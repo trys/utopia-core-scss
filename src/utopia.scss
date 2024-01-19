@@ -218,7 +218,7 @@
   );
 }
 
-// Clamp
+// Clamps
 
 @function calculateClamps($config) {
   $pairs: ();
@@ -286,52 +286,3 @@
     --#{$prefix}#{map-get($size, "label")}: #{map-get($size, "clamp")};
   }
 }
-
-// Example - TOOD - remove
-
-:root {
-  @include generateClamp((
-    "minWidth": 320,
-    "maxWidth": 1240,
-    "minSize": 16,
-    "maxSize": 20,
-    "prefix": "space-",
-    "relativeTo": "viewport-width",
-    "usePx": true,
-  ));
-
-  @include generateClamps((
-    "minWidth": 320,
-    "maxWidth": 1240,
-    "pairs": (
-      (16, 48),
-      (40, 18)
-    ),
-    "prefix": "space-",
-  ));
-
-  @include generateSpaceScale((
-    "minWidth": 320,
-    "maxWidth": 1240,
-    "minSize": 18,
-    "maxSize": 20,
-    "positiveSteps": (1.5, 2, 3, 4, 6),
-    "negativeSteps": (0.75, 0.5, 0.25),
-    "customSizes": ("s-l", "l-s"),
-    "prefix": "space-",
-  ));
-
-  @include generateTypeScale((
-    "minWidth": 320,
-    "maxWidth": 1240,
-    "minFontSize": 18,
-    "maxFontSize": 20,
-    "minTypeScale": 1.2,
-    "maxTypeScale": 1.25,
-    "positiveSteps": 5,
-    "negativeSteps": 2,
-    "prefix": "step-",
-  ));
-}
-
-
