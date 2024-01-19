@@ -1,0 +1,80 @@
+@use "sass:math";
+
+@function roundValue($number, $digits: 4) {
+  $n: 1;
+  // $number must be a number
+  @if type-of($number) != number {
+      @warn '#{ $number } is not a number.';
+      @return $number;
+  }
+  // $digits must be a unitless number
+  @if type-of($digits) != number {
+      @warn '#{ $digits } is not a number.';
+      @return $number;
+  } @else if not unitless($digits) {
+      @warn '#{ $digits } has a unit.';
+      @return $number;
+  }
+  @for $i from 1 through $digits {
+      $n: $n * 10;
+  }
+  @return math.div(round($number * $n), $n);
+}
+
+@function lerp($x, $y, $a) {
+  @return $x * (1 - $a) + $y * $a;
+}
+
+@function clampValue($a, $min: 0, $max: 1) {
+  @return min($max, max($min, $a));
+}
+
+@function invlerp($x, $y, $a) {
+  @return clampValue(math.div(($a - $x), ($y - $x)));
+}
+
+@function range($x1, $y1, $x2, $y2, $a) {
+  @return lerp($x2, $y2, invlerp($x1, $y1, $a));
+}
+
+@function prepend($list, $value) {
+  @return join(newList($value), $list);
+}
+
+@function getDefault($map, $key, $default) {
+  $value: map-get($map, $key);
+  @if ($value) {
+    @return $value;
+  } @else {
+    @return $default;
+  }
+}
+
+@function newList($value) {
+  $list: $value, $value;
+  @return remove-nth($list, 1);
+}
+
+// @link https://kittygiraudel.com/2013/08/08/advanced-sass-list-functions/
+@function remove-nth($list, $index) {
+  $result: null;
+
+  @if type-of($index) != number {
+    @warn "$index: #{quote($index)} is not a number for `remove-nth`.";
+  } @else if $index == 0 {
+    @warn "List index 0 must be a non-zero integer for `remove-nth`.";
+  } @else if abs($index) > length($list) {
+    @warn "List index is #{$index} but list is only #{length($list)} item long for `remove-nth`.";
+  } @else {
+    $result: ();
+    $index: if($index < 0, length($list) + $index + 1, $index);
+
+    @for $i from 1 through length($list) {
+      @if $i != $index {
+        $result: append($result, nth($list, $i));
+      }
+    }
+  }
+
+  @return $result;
+}

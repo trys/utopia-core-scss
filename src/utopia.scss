@@ -1,31 +1,5 @@
 @use "sass:math";
-
-@function calculateTypeSize($config, $viewport, $step) {
-  $scale: _range(map_get($config, 'minWidth'), map_get($config, 'maxWidth'), map_get($config, 'minTypeScale'), map_get($config, 'maxTypeScale'), $viewport);
-  $fontSize: _range(map_get($config, 'minWidth'), map_get($config, 'maxWidth'), map_get($config, 'minFontSize'), map_get($config, 'maxFontSize'), $viewport);
-  @return $fontSize * pow($scale, $step);
-}
-
-@function _round($number, $digits: 3) {
-  $n: 1;
-  // $number must be a number
-  @if type-of($number) != number {
-      @warn '#{ $number } is not a number.';
-      @return $number;
-  }
-  // $digits must be a unitless number
-  @if type-of($digits) != number {
-      @warn '#{ $digits } is not a number.';
-      @return $number;
-  } @else if not unitless($digits) {
-      @warn '#{ $digits } has a unit.';
-      @return $number;
-  }
-  @for $i from 1 through $digits {
-      $n: $n * 10;
-  }
-  @return math.div(round($number * $n), $n);
-}
+@use './helpers.scss';
 
 @function calculateClamp($params) {
   $unit: 0.0625rem;
@@ -37,6 +11,9 @@
   @if (map-get($params, "relativeTo") == "container") {
     $relativeUnit: 1cqi;
   }
+  @if (map-get($params, "relativeTo") == "viewport-width") {
+    $relativeUnit: 1vw;
+  }
 
   $isNegative: map-get($params, "minSize") > map-get($params, "maxSize");
   $min: map-get($params, "minSize");
@@ -47,14 +24,20 @@
     $max: map-get($params, "minSize")
   }
 
-  $slope: (map-get($params, "maxSize") - map-get($params, "minSize")) / (map-get($params, "maxWidth") - map-get($params, "minWidth"));
+  $slope: math.div((map-get($params, "maxSize") - map-get($params, "minSize")), (map-get($params, "maxWidth") - map-get($params, "minWidth")));
   $intersection: (-1 * map-get($params, "minWidth")) * $slope + map-get($params, "minSize");
-  @return clamp(_round($min * $unit), #{_round($intersection * $unit)} + #{_round($slope * 100) * $relativeUnit}, _round($max * $unit));
+  @return "clamp(#{helpers.roundValue($min * $unit)}, #{helpers.roundValue($intersection * $unit)} + #{helpers.roundValue($slope * 100) * $relativeUnit}, #{helpers.roundValue($max * $unit)})";
+}
+
+@function calculateTypeSize($config, $viewport, $step) {
+  $scale: helpers.range(map-get($config, 'minWidth'), map-get($config, 'maxWidth'), map-get($config, 'minTypeScale'), map-get($config, 'maxTypeScale'), $viewport);
+  $fontSize: helpers.range(map-get($config, 'minWidth'), map-get($config, 'maxWidth'), map-get($config, 'minFontSize'), map-get($config, 'maxFontSize'), $viewport);
+  @return $fontSize * pow($scale, $step);
 }
 
 @function calculateTypeStep($config, $step) {
-  $minSize: calculateTypeSize($config, map_get($config, 'minWidth'), $step);
-  $maxSize: calculateTypeSize($config, map_get($config, 'maxWidth'), $step);
+  $minSize: calculateTypeSize($config, map-get($config, 'minWidth'), $step);
+  $maxSize: calculateTypeSize($config, map-get($config, 'maxWidth'), $step);
 
   @return (
     "step": $step,
@@ -65,76 +48,130 @@
       "maxWidth": map-get($config, "maxWidth"),
       "minSize": $minSize,
       "maxSize": $maxSize,
+      "relativeTo": map-get($config, "relativeTo")
     ))
   );
 }
 
-@function prepend($list, $value) {
-  @return join(newList($value), $list);
-}
+@function calculateTypeScale($config) {
+  $steps: helpers.newList(calculateTypeStep($config, 0));
 
-@function remove-nth($list, $index) {
-  $result: null;
-
-  @if type-of($index) != number {
-    @warn "$index: #{quote($index)} is not a number for `remove-nth`.";
-  } @else if $index == 0 {
-    @warn "List index 0 must be a non-zero integer for `remove-nth`.";
-  } @else if abs($index) > length($list) {
-    @warn "List index is #{$index} but list is only #{length($list)} item long for `remove-nth`.";
-  } @else {
-    $result: ();
-    $index: if($index < 0, length($list) + $index + 1, $index);
-
-    @for $i from 1 through length($list) {
-      @if $i != $index {
-        $result: append($result, nth($list, $i));
-      }
+  $positiveSteps: helpers.getDefault($config, "positiveSteps", 0);
+  @if ($positiveSteps != 0) {
+    @for $i from 1 through $positiveSteps {
+      $steps: append($steps, calculateTypeStep($config, $i));
     }
   }
 
-  @return $result;
-}
-
-@function newList($value) {
-  $list: $value, $value;
-  @return remove-nth($list, 1);
-}
-
-@mixin calculateTypeScale($config) {
-  $steps: newList(calculateTypeStep($config, 0));
-
-  @for $i from 1 through map-get($config, "positiveSteps") {
-    $steps: append($steps, calculateTypeStep($config, $i));
+  $negativeSteps: helpers.getDefault($config, "negativeSteps", 0);
+  @if ($negativeSteps != 0) {
+    @for $i from 1 through $negativeSteps {
+      $steps: helpers.prepend($steps, calculateTypeStep($config, -1 * $i));
+    }
   }
 
-  @for $i from 1 through map-get($config, "negativeSteps") {
-    $steps: prepend($steps, calculateTypeStep($config, -1 * $i));
-  }
+  @return $steps;
+}
 
-  @each $step in $steps {
+@mixin generateTypeScale($config) {
+  @each $step in calculateTypeScale($config) {
     --step-#{map-get($step, "step")}: #{map-get($step, "clamp")};
   }
 }
 
-@function _lerp($x, $y, $a) {
-  @return $x * (1 - $a) + $y * $a;
+/*
+const calculateSpaceSize = (config: UtopiaSpaceConfig, multiplier: number, step: number): UtopiaSize => {
+
+  let label = 'S';
+  if (step === 1) {
+    label = 'M';
+  } else if (step === 2) {
+    label = 'L';
+  } else if (step === 3) {
+    label = 'XL';
+  } else if (step > 3) {
+    label = `${step - 2}XL`;
+  } else if (step === -1) {
+    label = 'XS';
+  } else if (step < 0) {
+    label = `${Math.abs(step)}XS`;
+  }
+}
+*/
+
+@function calculateSpaceSize($config, $multiplier, $step) {
+  $minSize: math.round(map-get($config, "minSize") * $multiplier);
+  $maxSize: math.round(map-get($config, "maxSize") * $multiplier);
+
+  $label: 's';
+  @if ($step == 1) {
+    $label: 'm';
+  } @else if ($step == 2) {
+    $label: 'l';
+  } @else if ($step == 3) {
+    $label: 'xl';
+  } @else if ($step > 3) {
+    $label: "#{$step - 2}xl";
+  } @else if ($step == -1) {
+    $label: 'xs';
+  } @else if ($step < -1) {
+    $label: "#{math.abs($step)}xs";
+  }
+
+  @return (
+    "label": $label,
+    "minSize": helpers.roundValue($minSize),
+    "maxSize": helpers.roundValue($maxSize),
+    "clamp": calculateClamp((
+      "minWidth": map-get($config, "minWidth"),
+      "maxWidth": map-get($config, "maxWidth"),
+      "minSize": $minSize,
+      "maxSize": $maxSize,
+      "relativeTo": map-get($config, "relativeTo")
+    )),
+    "clampPx": calculateClamp((
+      "minWidth": map-get($config, "minWidth"),
+      "maxWidth": map-get($config, "maxWidth"),
+      "minSize": $minSize,
+      "maxSize": $maxSize,
+      "usePx": true,
+      "relativeTo": map-get($config, "relativeTo")
+    ))
+  )
 }
 
-@function _clamp($a, $min: 0, $max: 1) {
-  @return min($max, max($min, $a));
-}
+@mixin generateSpaceScale($config) {
+  $sizes: helpers.newList(calculateSpaceSize($config, 1, 0));
 
-@function _invlerp($x, $y, $a) {
-  @return _clamp(($a - $x) / ($y - $x));
-}
+  $positiveSteps: map-get($config, "positiveSteps");
+  @each $step in $positiveSteps {
+    $i: index($positiveSteps, $step);
+    $sizes: append($sizes, calculateSpaceSize($config, $step, $i));
+  }
 
-@function _range($x1, $y1, $x2, $y2, $a) {
-  @return _lerp($x2, $y2, _invlerp($x1, $y1, $a));
+  $negativeSteps: map-get($config, "negativeSteps");
+  @each $step in $negativeSteps {
+    $i: index($negativeSteps, $step);
+    $sizes: helpers.prepend($sizes, calculateSpaceSize($config, $step, -1 * $i));
+  }
+
+  @each $size in $sizes {
+    --space-#{map-get($size, "label")}: #{map-get($size, "clamp")};
+  }
 }
 
 :root {
-  @include calculateTypeScale((
+  @include generateSpaceScale((
+    "minWidth": 320,
+    "maxWidth": 1240,
+    "minSize": 18,
+    "maxSize": 20,
+    "positiveSteps": (1.5, 2, 3, 4, 6),
+    "negativeSteps": (0.75, 0.5, 0.25),
+    "customSizes": ("s-l", "l-s"),
+  ));
+
+  @include generateTypeScale((
     "minWidth": 320,
     "maxWidth": 1240,
     "minFontSize": 18,
@@ -142,7 +179,7 @@
     "minTypeScale": 1.2,
     "maxTypeScale": 1.25,
     "positiveSteps": 5,
-    "negativeSteps": 2
+    "negativeSteps": 2,
   ));
 }
 
