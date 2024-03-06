@@ -37,7 +37,7 @@
 @function calculateTypeSize($config, $viewport, $step) {
   $scale: helpers.range(map-get($config, 'minWidth'), map-get($config, 'maxWidth'), map-get($config, 'minTypeScale'), map-get($config, 'maxTypeScale'), $viewport);
   $fontSize: helpers.range(map-get($config, 'minWidth'), map-get($config, 'maxWidth'), map-get($config, 'minFontSize'), map-get($config, 'maxFontSize'), $viewport);
-  @return $fontSize * pow($scale, $step);
+  @return $fontSize * math.pow($scale, $step);
 }
 
 @function calculateTypeStep($config, $step) {
