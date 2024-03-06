@@ -69,7 +69,7 @@ Generate a set of fluid spaces from min/max width/base sizes, and a number of po
     "positiveSteps": (1.5, 2),
     "negativeSteps": (0.75),
     /* Optional params */
-    "customSizes": ("s-l"),
+    "customSizes": ("s-l",),
     "usePx": true,
     "relativeTo": "container",
     "prefix": "space-",
@@ -188,7 +188,7 @@ $spaceScales: utopia.calculateSpaceScale((
   "maxSize": 20,
   "positiveSteps": (1.5, 2, 3, 4, 6),
   "negativeSteps": (0.75, 0.5, 0.25),
-  "customSizes": ("s-l", "l-s"),
+  "customSizes": ("s-l", "l-s",),
   /* Optional params */
   "relativeTo": "container",
 ))
