@@ -246,7 +246,7 @@ Calculate a single clamp calculation from a min/max width & size. Default to usi
 #### Example
 
 ```scss
-$clamp: utopia.calculateClamp({
+$clamp: utopia.calculateClamp((
   "minWidth": 320,
   "maxWidth": 1240,
   "minSize": 16,
@@ -254,7 +254,7 @@ $clamp: utopia.calculateClamp({
   /* Optional params */
   "usePx": true,
   "relativeTo": "container"
-})
+))
 
 // clamp(1rem, 0.3043rem + 3.4783vi, 3rem);
 ```
