@@ -10,12 +10,12 @@
     $unit: 1px;
   }
 
-  $relativeUnit: 1vi;
+  $relativeUnit: 1vw;
   @if (map-get($params, "relativeTo") == "container") {
     $relativeUnit: 1cqi;
   }
-  @if (map-get($params, "relativeTo") == "viewport-width") {
-    $relativeUnit: 1vw;
+  @if (map-get($params, "relativeTo") == "viewport") {
+    $relativeUnit: 1vi;
   }
 
   $isNegative: map-get($params, "minSize") > map-get($params, "maxSize");
