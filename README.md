@@ -151,7 +151,7 @@ Calculate a fluid type scale between two widths, sizes and scales. Set the numbe
 #### Example
 
 ```scss
-$typeScale: utopia.generateTypeScale((
+$typeScale: utopia.calculateTypeScale((
   "minWidth": 320,
   "maxWidth": 1240,
   "minFontSize": 18,
