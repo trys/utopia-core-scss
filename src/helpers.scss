@@ -1,17 +1,21 @@
+@use "sass:list";
+@use "sass:map";
 @use "sass:math";
+@use "sass:meta";
+@use "sass:string";
 
 @function roundValue($number, $digits: 4) {
   $n: 1;
   // $number must be a number
-  @if type-of($number) != number {
+  @if meta.type-of($number) != number {
       @warn '#{ $number } is not a number.';
       @return $number;
   }
   // $digits must be a unitless number
-  @if type-of($digits) != number {
+  @if meta.type-of($digits) != number {
       @warn '#{ $digits } is not a number.';
       @return $number;
-  } @else if not unitless($digits) {
+  } @else if not math.is-unitless($digits) {
       @warn '#{ $digits } has a unit.';
       @return $number;
   }
@@ -38,11 +42,11 @@
 }
 
 @function prepend($list, $value) {
-  @return join(newList($value), $list);
+  @return list.join(newList($value), $list);
 }
 
 @function getDefault($map, $key, $default) {
-  $value: map-get($map, $key);
+  $value: map.get($map, $key);
   @if ($value) {
     @return $value;
   } @else {
@@ -59,19 +63,19 @@
 @function remove-nth($list, $index) {
   $result: null;
 
-  @if type-of($index) != number {
-    @warn "$index: #{quote($index)} is not a number for `remove-nth`.";
+  @if meta.type-of($index) != number {
+    @warn "$index: #{string.quote($index)} is not a number for `remove-nth`.";
   } @else if $index == 0 {
     @warn "List index 0 must be a non-zero integer for `remove-nth`.";
-  } @else if abs($index) > length($list) {
-    @warn "List index is #{$index} but list is only #{length($list)} item long for `remove-nth`.";
+  } @else if math.abs($index) > list.length($list) {
+    @warn "List index is #{$index} but list is only #{list.length($list)} item long for `remove-nth`.";
   } @else {
     $result: ();
-    $index: if($index < 0, length($list) + $index + 1, $index);
+    $index: if($index < 0, list.length($list) + $index + 1, $index);
 
-    @for $i from 1 through length($list) {
+    @for $i from 1 through list.length($list) {
       @if $i != $index {
-        $result: append($result, nth($list, $i));
+        $result: list.append($result, list.nth($list, $i));
       }
     }
   }
@@ -81,7 +85,7 @@
 
 @function findByKey($list, $key, $value) {
   @each $item in $list {
-    @if (map-get($item, $key) == $value) {
+    @if (map.get($item, $key) == $value) {
       @return $item;
     }
   }

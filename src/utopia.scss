@@ -1,3 +1,6 @@
+@use "sass:list";
+@use "sass:meta";
+@use "sass:map";
 @use "sass:math";
 @use "sass:string";
 @use './helpers.scss';
@@ -6,54 +9,54 @@
 
 @function calculateClamp($params) {
   $unit: 0.0625rem;
-  @if (map-get($params, "usePx")) {
+  @if (map.get($params, "usePx")) {
     $unit: 1px;
   }
 
   $relativeUnit: 1vw;
-  @if (map-get($params, "relativeTo") == "container") {
+  @if (map.get($params, "relativeTo") == "container") {
     $relativeUnit: 1cqi;
   }
-  @if (map-get($params, "relativeTo") == "viewport") {
+  @if (map.get($params, "relativeTo") == "viewport") {
     $relativeUnit: 1vi;
   }
 
-  $isNegative: map-get($params, "minSize") > map-get($params, "maxSize");
-  $min: map-get($params, "minSize");
-  $max: map-get($params, "maxSize");
+  $isNegative: map.get($params, "minSize") > map.get($params, "maxSize");
+  $min: map.get($params, "minSize");
+  $max: map.get($params, "maxSize");
 
   @if ($isNegative) {
-    $min: map-get($params, "maxSize");
-    $max: map-get($params, "minSize")
+    $min: map.get($params, "maxSize");
+    $max: map.get($params, "minSize")
   }
 
-  $slope: math.div((map-get($params, "maxSize") - map-get($params, "minSize")), (map-get($params, "maxWidth") - map-get($params, "minWidth")));
-  $intersection: (-1 * map-get($params, "minWidth")) * $slope + map-get($params, "minSize");
+  $slope: math.div((map.get($params, "maxSize") - map.get($params, "minSize")), (map.get($params, "maxWidth") - map.get($params, "minWidth")));
+  $intersection: (-1 * map.get($params, "minWidth")) * $slope + map.get($params, "minSize");
   @return "clamp(#{helpers.roundValue($min * $unit)}, #{helpers.roundValue($intersection * $unit)} + #{helpers.roundValue($slope * 100) * $relativeUnit}, #{helpers.roundValue($max * $unit)})";
 }
 
 // Type
 
 @function calculateTypeSize($config, $viewport, $step) {
-  $scale: helpers.range(map-get($config, 'minWidth'), map-get($config, 'maxWidth'), map-get($config, 'minTypeScale'), map-get($config, 'maxTypeScale'), $viewport);
-  $fontSize: helpers.range(map-get($config, 'minWidth'), map-get($config, 'maxWidth'), map-get($config, 'minFontSize'), map-get($config, 'maxFontSize'), $viewport);
+  $scale: helpers.range(map.get($config, 'minWidth'), map.get($config, 'maxWidth'), map.get($config, 'minTypeScale'), map.get($config, 'maxTypeScale'), $viewport);
+  $fontSize: helpers.range(map.get($config, 'minWidth'), map.get($config, 'maxWidth'), map.get($config, 'minFontSize'), map.get($config, 'maxFontSize'), $viewport);
   @return $fontSize * math.pow($scale, $step);
 }
 
 @function calculateTypeStep($config, $step) {
-  $minSize: calculateTypeSize($config, map-get($config, 'minWidth'), $step);
-  $maxSize: calculateTypeSize($config, map-get($config, 'maxWidth'), $step);
+  $minSize: calculateTypeSize($config, map.get($config, 'minWidth'), $step);
+  $maxSize: calculateTypeSize($config, map.get($config, 'maxWidth'), $step);
 
   @return (
     "step": $step,
     "minSize": $minSize,
     "maxSize": $maxSize,
     "clamp": calculateClamp((
-      "minWidth": map-get($config, "minWidth"),
-      "maxWidth": map-get($config, "maxWidth"),
+      "minWidth": map.get($config, "minWidth"),
+      "maxWidth": map.get($config, "maxWidth"),
       "minSize": $minSize,
       "maxSize": $maxSize,
-      "relativeTo": map-get($config, "relativeTo")
+      "relativeTo": map.get($config, "relativeTo")
     ))
   );
 }
@@ -64,7 +67,7 @@
   $positiveSteps: helpers.getDefault($config, "positiveSteps", 0);
   @if ($positiveSteps != 0) {
     @for $i from 1 through $positiveSteps {
-      $steps: append($steps, calculateTypeStep($config, $i));
+      $steps: list.append($steps, calculateTypeStep($config, $i));
     }
   }
 
@@ -81,8 +84,8 @@
 // Space
 
 @function calculateSpaceSize($config, $multiplier, $step) {
-  $minSize: math.round(map-get($config, "minSize") * $multiplier);
-  $maxSize: math.round(map-get($config, "maxSize") * $multiplier);
+  $minSize: math.round(map.get($config, "minSize") * $multiplier);
+  $maxSize: math.round(map.get($config, "maxSize") * $multiplier);
 
   $label: 's';
   @if ($step == 1) {
@@ -104,19 +107,19 @@
     "minSize": helpers.roundValue($minSize),
     "maxSize": helpers.roundValue($maxSize),
     "clamp": calculateClamp((
-      "minWidth": map-get($config, "minWidth"),
-      "maxWidth": map-get($config, "maxWidth"),
+      "minWidth": map.get($config, "minWidth"),
+      "maxWidth": map.get($config, "maxWidth"),
       "minSize": $minSize,
       "maxSize": $maxSize,
-      "relativeTo": map-get($config, "relativeTo")
+      "relativeTo": map.get($config, "relativeTo")
     )),
     "clampPx": calculateClamp((
-      "minWidth": map-get($config, "minWidth"),
-      "maxWidth": map-get($config, "maxWidth"),
+      "minWidth": map.get($config, "minWidth"),
+      "maxWidth": map.get($config, "maxWidth"),
       "minSize": $minSize,
       "maxSize": $maxSize,
       "usePx": true,
-      "relativeTo": map-get($config, "relativeTo")
+      "relativeTo": map.get($config, "relativeTo")
     ))
   );
 }
@@ -124,28 +127,28 @@
 @function calculateOneUpPairs($config, $sizes) {
   $pairs: ();
   @each $size in $sizes {
-    $i: index($sizes, $size);
+    $i: list.index($sizes, $size);
     @if ($i > 1) {
-      $prev: nth($sizes, $i - 1);
+      $prev: list.nth($sizes, $i - 1);
 
-      $pairs: append($pairs, (
-        "label": "#{map-get($prev, "label")}-#{map-get($size, "label")}",
-        "minSize": map-get($prev, "minSize"),
-        "maxSize": map-get($size, "maxSize"),
+      $pairs: list.append($pairs, (
+        "label": "#{map.get($prev, "label")}-#{map.get($size, "label")}",
+        "minSize": map.get($prev, "minSize"),
+        "maxSize": map.get($size, "maxSize"),
         "clamp": calculateClamp((
-          "minWidth": map-get($config, "minWidth"),
-          "maxWidth": map-get($config, "maxWidth"),
-          "minSize": map-get($prev, "minSize"),
-          "maxSize": map-get($size, "maxSize"),
-          "relativeTo": map-get($config, "relativeTo")
+          "minWidth": map.get($config, "minWidth"),
+          "maxWidth": map.get($config, "maxWidth"),
+          "minSize": map.get($prev, "minSize"),
+          "maxSize": map.get($size, "maxSize"),
+          "relativeTo": map.get($config, "relativeTo")
         )),
         "clampPx": calculateClamp((
-          "minWidth": map-get($config, "minWidth"),
-          "maxWidth": map-get($config, "maxWidth"),
-          "minSize": map-get($prev, "minSize"),
-          "maxSize": map-get($size, "maxSize"),
+          "minWidth": map.get($config, "minWidth"),
+          "maxWidth": map.get($config, "maxWidth"),
+          "minSize": map.get($prev, "minSize"),
+          "maxSize": map.get($size, "maxSize"),
           "usePx": true,
-          "relativeTo": map-get($config, "relativeTo")
+          "relativeTo": map.get($config, "relativeTo")
         ))
       ));
     }
@@ -156,34 +159,34 @@
 
 @function calculateCustomPairs($config, $sizes) {
   $pairs: ();
-  $customSizes: map-get($config, "customSizes");
-  @if (type-of($customSizes) != "list") {
+  $customSizes: map.get($config, "customSizes");
+  @if (meta.type-of($customSizes) != "list") {
     @return $pairs;
   }
 
   @each $label in $customSizes {
     $keys: string.split($label, '-', 1);
-    $a: helpers.findByKey($sizes, "label", nth($keys, 1));
-    $b: helpers.findByKey($sizes, "label", nth($keys, 2));
-    @if (type-of($a) == "map" and type-of($b) == "map") {
-      $pairs: append($pairs, (
-        "label": "#{map-get($a, "label")}-#{map-get($b, "label")}",
-        "minSize": map-get($a, "minSize"),
-        "maxSize": map-get($b, "maxSize"),
+    $a: helpers.findByKey($sizes, "label", list.nth($keys, 1));
+    $b: helpers.findByKey($sizes, "label", list.nth($keys, 2));
+    @if (meta.type-of($a) == "map" and meta.type-of($b) == "map") {
+      $pairs: list.append($pairs, (
+        "label": "#{map.get($a, "label")}-#{map.get($b, "label")}",
+        "minSize": map.get($a, "minSize"),
+        "maxSize": map.get($b, "maxSize"),
         "clamp": calculateClamp((
-          "minWidth": map-get($config, "minWidth"),
-          "maxWidth": map-get($config, "maxWidth"),
-          "minSize": map-get($a, "minSize"),
-          "maxSize": map-get($b, "maxSize"),
-          "relativeTo": map-get($config, "relativeTo")
+          "minWidth": map.get($config, "minWidth"),
+          "maxWidth": map.get($config, "maxWidth"),
+          "minSize": map.get($a, "minSize"),
+          "maxSize": map.get($b, "maxSize"),
+          "relativeTo": map.get($config, "relativeTo")
         )),
         "clampPx": calculateClamp((
-          "minWidth": map-get($config, "minWidth"),
-          "maxWidth": map-get($config, "maxWidth"),
-          "minSize": map-get($a, "minSize"),
-          "maxSize": map-get($b, "maxSize"),
+          "minWidth": map.get($config, "minWidth"),
+          "maxWidth": map.get($config, "maxWidth"),
+          "minSize": map.get($a, "minSize"),
+          "maxSize": map.get($b, "maxSize"),
           "usePx": true,
-          "relativeTo": map-get($config, "relativeTo")
+          "relativeTo": map.get($config, "relativeTo")
         )),
       ));
     }
@@ -195,18 +198,18 @@
 @function calculateSpaceScale($config) {
   $sizes: helpers.newList(calculateSpaceSize($config, 1, 0));
 
-  $positiveSteps: map-get($config, "positiveSteps");
-  @if (type-of($positiveSteps) == "list") {
+  $positiveSteps: map.get($config, "positiveSteps");
+  @if (meta.type-of($positiveSteps) == "list") {
     @each $step in $positiveSteps {
-      $i: index($positiveSteps, $step);
-      $sizes: append($sizes, calculateSpaceSize($config, $step, $i));
+      $i: list.index($positiveSteps, $step);
+      $sizes: list.append($sizes, calculateSpaceSize($config, $step, $i));
     }
   }
 
-  $negativeSteps: map-get($config, "negativeSteps");
-  @if (type-of($negativeSteps) == "list") {
+  $negativeSteps: map.get($config, "negativeSteps");
+  @if (meta.type-of($negativeSteps) == "list") {
     @each $step in $negativeSteps {
-      $i: index($negativeSteps, $step);
+      $i: list.index($negativeSteps, $step);
       $sizes: helpers.prepend($sizes, calculateSpaceSize($config, $step, -1 * $i));
     }
   }
@@ -223,18 +226,18 @@
 @function calculateClamps($config) {
   $pairs: ();
 
-  @each $item in map-get($config, "pairs") {
-    $min: nth($item, 1);
-    $max: nth($item, 2);
-    $pairs: append($pairs, (
+  @each $item in map.get($config, "pairs") {
+    $min: list.nth($item, 1);
+    $max: list.nth($item, 2);
+    $pairs: list.append($pairs, (
       "label": "#{$min}-#{$max}",
       "clamp": calculateClamp((
-        "minWidth": map-get($config, "minWidth"),
-        "maxWidth": map-get($config, "maxWidth"),
+        "minWidth": map.get($config, "minWidth"),
+        "maxWidth": map.get($config, "maxWidth"),
         "minSize": $min,
         "maxSize": $max,
-        "usePx": map-get($config, "usePx"),
-        "relativeTo": map-get($config, "relativeTo")
+        "usePx": map.get($config, "usePx"),
+        "relativeTo": map.get($config, "relativeTo")
       ))
     ));
   }
@@ -247,35 +250,35 @@
 @mixin generateTypeScale($config) {
   $prefix: helpers.getDefault($config, "prefix", "step-");
   @each $step in calculateTypeScale($config) {
-    --#{$prefix}#{map-get($step, "step")}: #{map-get($step, "clamp")};
+    --#{$prefix}#{map.get($step, "step")}: #{map.get($step, "clamp")};
   }
 }
 
 @mixin generateSpaceScale($config) {
   $prefix: helpers.getDefault($config, "prefix", "space-");
   $format: "clamp";
-  @if (map-get($config, "usePx")) {
+  @if (map.get($config, "usePx")) {
     $format: "clampPx";
   }
 
   $scale: calculateSpaceScale($config);
-  @each $size in map-get($scale, "sizes") {
-    --#{$prefix}#{map-get($size, "label")}: #{map-get($size, $format)};
+  @each $size in map.get($scale, "sizes") {
+    --#{$prefix}#{map.get($size, "label")}: #{map.get($size, $format)};
   }
 
-  @each $size in map-get($scale, "oneUpPairs") {
-    --#{$prefix}#{map-get($size, "label")}: #{map-get($size, $format)};
+  @each $size in map.get($scale, "oneUpPairs") {
+    --#{$prefix}#{map.get($size, "label")}: #{map.get($size, $format)};
   }
 
-  @each $size in map-get($scale, "customPairs") {
-    --#{$prefix}#{map-get($size, "label")}: #{map-get($size, $format)};
+  @each $size in map.get($scale, "customPairs") {
+    --#{$prefix}#{map.get($size, "label")}: #{map.get($size, $format)};
   }
 }
 
 @mixin generateClamp($config) {
   $prefix: helpers.getDefault($config, "prefix", "space-");
-  $min: map-get($config, "minSize");
-  $max: map-get($config, "maxSize");
+  $min: map.get($config, "minSize");
+  $max: map.get($config, "maxSize");
   --#{$prefix}#{$min}-#{$max}: #{calculateClamp($config)};
 }
 
@@ -283,6 +286,6 @@
   $prefix: helpers.getDefault($config, "prefix", "space-");
   $clamps: calculateClamps($config);
   @each $size in $clamps {
-    --#{$prefix}#{map-get($size, "label")}: #{map-get($size, "clamp")};
+    --#{$prefix}#{map.get($size, "label")}: #{map.get($size, "clamp")};
   }
 }
