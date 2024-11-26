@@ -22,7 +22,7 @@
   @for $i from 1 through $digits {
       $n: $n * 10;
   }
-  @return math.div(round($number * $n), $n);
+  @return math.div(math.round($number * $n), $n);
 }
 
 @function lerp($x, $y, $a) {
