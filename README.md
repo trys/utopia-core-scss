@@ -73,6 +73,7 @@ Generate a set of fluid spaces from min/max width/base sizes, and a number of po
     "usePx": true,
     "relativeTo": "container",
     "prefix": "space-",
+    "allPairs": false,
   ));
 
   // Generates this:
@@ -88,6 +89,10 @@ Generate a set of fluid spaces from min/max width/base sizes, and a number of po
   --space-s-l: clamp(...);
 }
 ```
+
+#### Note
+
+Passing `allPairs: true` will generate all possible pairs of the positive/negative steps, overriding any custom pairs you specify. This is useful for generating a full set of fluid spaces, but may not be necessary if you are only interested in a few specific pairs, and will result in a larger CSS file. Use a tool such as [PurgeCSS](https://purgecss.com/) to remove unused custom properties at build time.
 
 ### `generateClamps()`
 
@@ -205,6 +210,7 @@ $spaceScales: utopia.calculateSpaceScale((
 //  ),
 //  "oneUpPairs": (),
 //  "customPairs": (),
+//  "allPairs": (),
 // )
 ```
 
