@@ -178,7 +178,7 @@
 @function calculateCustomPairs($config, $sizes) {
   $pairs: ();
   $customSizes: map.get($config, "customSizes");
-  @if (meta.type-of($customSizes) != "list") {
+  @if (meta.type-of($customSizes) != "list" and meta.type-of($customSizes) != "string") {
     @return $pairs;
   }
 
