@@ -18,6 +18,8 @@ Utopia Core SCSS outputs in two formats: mixins & functions. Mixins generate act
 
 All mixins/functions default `relativeTo` to `viewport` (`vi`), but can be overriden to `container` (`cqi`), or `viewport-width` (`vw`).
 
+All mixins/functions also default to a base unit of `0.0625rem` for pixel to relative unit conversions. Change this with the `baseUnit` if you have altered the root font size. For instance, setting the root font size to `62.5%` will, given default browser setting, set `1rem` to the equivalent of `10px`. To correct this in Utopia you will then have to set `baseUnit` to `0.1rem` (or whatever the relative size will result in `1px` size).
+
 ## Mixins
 
 ### `generateTypeScale()`
@@ -40,6 +42,7 @@ Generate a fluid type scale between two widths, sizes and scales. Set the number
     "negativeSteps": 2,
     /* Optional params */
     "relativeTo": "viewport",
+    "baseUnit": 0.1rem,
     "prefix": "step-",
   ));
 
@@ -72,6 +75,7 @@ Generate a set of fluid spaces from min/max width/base sizes, and a number of po
     "customSizes": ("s-l",),
     "usePx": true,
     "relativeTo": "container",
+    "baseUnit": 0.1rem,
     "prefix": "space-",
     "allPairs": false,
   ));
@@ -113,6 +117,7 @@ Generate multiple clamps from a single set of min/max widths. Supply an array of
     /* Optional params */
     "usePx": true,
     "relativeTo": "container",
+    "baseUnit": 0.1rem,
     "prefix": "space-",
   ))
 
@@ -139,6 +144,7 @@ Generate a single clamp custom property from a min/max width & size. Default to 
     /* Optional params */
     "usePx": true,
     "relativeTo": "container",
+    "baseUnit": 0.1rem,
     "prefix": "space-",
   ))
 
@@ -167,6 +173,7 @@ $typeScale: utopia.calculateTypeScale((
   "negativeSteps": 2,
   /* Optional params */
   "relativeTo": "container",
+  "baseUnit": 0.1rem,
 ))
 
 // $typeScale == (
@@ -196,6 +203,7 @@ $spaceScales: utopia.calculateSpaceScale((
   "customSizes": ("s-l", "l-s",),
   /* Optional params */
   "relativeTo": "container",
+  "baseUnit": 0.1rem,
 ))
 
 // $spaceScales == (
@@ -230,7 +238,8 @@ $clamps: utopia.calculateClamps((
   ),
   /* Optional params */
   "usePx": true,
-  "relativeTo": "container"
+  "relativeTo": "container",
+  "baseUnit": 0.1rem,
 ))
 
 // $clamps == (
@@ -259,10 +268,9 @@ $clamp: utopia.calculateClamp((
   "maxSize": 48,
   /* Optional params */
   "usePx": true,
-  "relativeTo": "container"
+  "relativeTo": "container",
+  "baseUnit": 0.1rem,
 ))
 
 // clamp(1rem, 0.3043rem + 3.4783vi, 3rem);
 ```
-
-

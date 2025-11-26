@@ -8,7 +8,7 @@
 // Singular clamp
 
 @function calculateClamp($params) {
-  $unit: 0.0625rem;
+  $unit: helpers.getDefault($params, "baseUnit", 0.0625rem);
   @if (map.get($params, "usePx")) {
     $unit: 1px;
   }
@@ -52,6 +52,7 @@
     "minSize": $minSize,
     "maxSize": $maxSize,
     "clamp": calculateClamp((
+      "baseUnit": map.get($config, "baseUnit"),
       "minWidth": map.get($config, "minWidth"),
       "maxWidth": map.get($config, "maxWidth"),
       "minSize": $minSize,
@@ -190,7 +191,7 @@
       $pairs: list.append($pairs, calculateSpacePair($config, $a, $b));
     }
   }
-  
+
   @return $pairs;
 }
 
@@ -274,7 +275,7 @@
     @each $size in map.get($scale, "oneUpPairs") {
       --#{$prefix}#{map.get($size, "label")}: #{map.get($size, $format)};
     }
-  
+
     @each $size in map.get($scale, "customPairs") {
       --#{$prefix}#{map.get($size, "label")}: #{map.get($size, $format)};
     }
